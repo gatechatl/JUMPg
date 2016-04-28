@@ -1,6 +1,7 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -I /home/yli4/development/JUMPg/JUMPg_v2.2.6/programs/g
 package rnaPepDecorator;
 use strict;
+use PrimarySeq;
 sub new
 {
         my($class) = @_;
@@ -12,6 +13,81 @@ sub new
 #---------------------------------------------------------------------------------------------------------
 
 1;
+
+sub publicTab2 {
+	shift @_;
+	my ($scanhash,$peptidehash, $output)=@_;
+	$output||='id_peptide.txt';
+	open(OUT,">",$output);
+	#print OUT "peptide\tPSMs\tbest_PSM\tJscore\tdJn\t\tread_counts\tgene\tlocation_type\tframe\tgenome_chr\tgenome_strand\tgenome_start\tgenome_end\n";
+	print OUT "peptide\tPSMs\tbest_PSM\tJscore\tdJn\tread_counts\tgene\tlocation_type\tgenome_chr\tgenome_strand\tgenome_start\tgenome_end\tGenomicSeq\tref_peptide\tAAdiff\n";
+	foreach my $out (keys %$scanhash) {
+		my $pep=$scanhash->{$out}->{peptide};
+		next unless ($out eq $peptidehash->{$pep}->{top_score_outfile});
+
+		my $rnaID=$scanhash->{$out}->{rnaID};
+		if (defined($scanhash->{$out}->{RNA}->{$rnaID}->{b5})) {
+			my $blkN=scalar(@{$scanhash->{$out}->{RNA}->{$rnaID}->{b5}});
+
+			print OUT "$pep\t",scalar(keys %{$peptidehash->{$pep}->{outfiles}}),"\t$out\t$scanhash->{$out}->{XCorr}\t$scanhash->{$out}->{dCn}\tnot_available\t$scanhash->{$out}->{transcriptID}\t$scanhash->{$out}->{functionalType}\t$scanhash->{$out}->{RNA}->{$rnaID}->{chr}\t$scanhash->{$out}->{RNA}->{$rnaID}->{genomicStrand}\t$scanhash->{$out}->{RNA}->{$rnaID}->{b5}->[0]\t$scanhash->{$out}->{RNA}->{$rnaID}->{b3}->[$blkN-1]\t";
+			if (defined($scanhash->{$out}->{ref_peptide})) {
+				print OUT "$scanhash->{$out}->{GenomicSeq}\t$scanhash->{$out}->{ref_peptide}\t$scanhash->{$out}->{AAdiff}";
+			}
+			print OUT "\n";
+		} else {
+			print OUT "$pep\t",scalar(keys %{$peptidehash->{$pep}->{outfiles}}),"\t$out\t$scanhash->{$out}->{XCorr}\t$scanhash->{$out}->{dCn}\tnot_available\t$scanhash->{$out}->{transcriptID}\t$scanhash->{$out}->{functionalType}\tNA\tNA\tNA\tNA\n";
+		}
+	}
+	close OUT;
+}
+
+sub annCDSpep {
+	#shift @_;
+	my ($self,$scanhash,$peptidehash,$genomeSeq)=@_;
+
+	foreach my $out (keys %$scanhash) {
+		my $pep=$scanhash->{$out}->{peptide};
+		next unless ($out eq $peptidehash->{$pep}->{top_score_outfile});
+		# only for CDS peptides
+		next unless ($scanhash->{$out}->{functionalType} eq 'CDS');
+
+		my $rnaID=$scanhash->{$out}->{rnaID};
+		my $chr=$scanhash->{$out}->{RNA}->{$rnaID}->{chr};
+		my $strand=$scanhash->{$out}->{RNA}->{$rnaID}->{genomicStrand};
+		if (defined($scanhash->{$out}->{RNA}->{$rnaID}->{b5})) {
+			# get genomic sequnce via peptide genomic positions
+			my $pepGenomicSeq=$self->getGenomic($genomeSeq->{$chr},$scanhash->{$out}->{RNA}->{$rnaID});
+			# translate genomic sequnce to AA sequence
+			my $ps=PrimarySeq->new;
+			my $refRNAseq=($strand eq '+')?$pepGenomicSeq:$ps->revcom($pepGenomicSeq);
+			my $AAseq=$ps->translate($refRNAseq);
+			# count mismatches by comparing identified peptide sequence with ref AA sequence
+			my $AAdiff=$ps->sequenceDiff($scanhash->{$out}->{nomod},$AAseq);
+			# store information in %scanhash
+			$scanhash->{$out}->{GenomicSeq}=$pepGenomicSeq;
+			$scanhash->{$out}->{ref_peptide}=$AAseq;
+			$scanhash->{$out}->{AAdiff}=$AAdiff;
+			
+		} else {
+		}
+	}
+	
+}
+
+sub getGenomic {
+	shift @_;
+	my ($chrSeq,$locationhash)=@_;
+
+	my $blkN=scalar(@{$locationhash->{b5}});
+	my $resultSeq='';
+
+	for (my $i=0; $i<$blkN; $i++) {
+		my $blkSize=$locationhash->{b3}->[$i] - $locationhash->{b5}->[$i];
+		$resultSeq.= substr $chrSeq, $locationhash->{b5}->[$i], $blkSize;
+	}
+
+	return $resultSeq;
+}
 
 sub publicTabPSM {
 	shift @_;
@@ -33,12 +109,19 @@ sub publicTab {
 	$output||='id_peptide.txt';
 	open(OUT,">",$output);
 	#print OUT "peptide\tPSMs\tbest_PSM\tJscore\tdJn\t\tread_counts\tgene\tlocation_type\tframe\tgenome_chr\tgenome_strand\tgenome_start\tgenome_end\n";
-	print OUT "peptide\tPSMs\tbest_PSM\tJscore\tdJn\tread_counts\tgene\tlocation_type\n";
+	print OUT "peptide\tPSMs\tbest_PSM\tJscore\tdJn\tread_counts\tgene\tlocation_type\tgenome_chr\tgenome_strand\tgenome_start\tgenome_end\n";
 	foreach my $out (keys %$scanhash) {
 		my $pep=$scanhash->{$out}->{peptide};
 		next unless ($out eq $peptidehash->{$pep}->{top_score_outfile});
-		
-		print OUT "$pep\t",scalar(keys %{$peptidehash->{$pep}->{outfiles}}),"\t$out\t$scanhash->{$out}->{XCorr}\t$scanhash->{$out}->{dCn}\tnot_available\t$scanhash->{$out}->{transcriptID}\t$scanhash->{$out}->{functionalType}\n";
+
+		my $rnaID=$scanhash->{$out}->{rnaID};
+		if (defined($scanhash->{$out}->{RNA}->{$rnaID}->{b5})) {
+			my $blkN=scalar(@{$scanhash->{$out}->{RNA}->{$rnaID}->{b5}});
+
+			print OUT "$pep\t",scalar(keys %{$peptidehash->{$pep}->{outfiles}}),"\t$out\t$scanhash->{$out}->{XCorr}\t$scanhash->{$out}->{dCn}\tnot_available\t$scanhash->{$out}->{transcriptID}\t$scanhash->{$out}->{functionalType}\t$scanhash->{$out}->{RNA}->{$rnaID}->{chr}\t$scanhash->{$out}->{RNA}->{$rnaID}->{genomicStrand}\t$scanhash->{$out}->{RNA}->{$rnaID}->{b5}->[0]\t$scanhash->{$out}->{RNA}->{$rnaID}->{b3}->[$blkN-1]\n";
+		} else {
+			print OUT "$pep\t",scalar(keys %{$peptidehash->{$pep}->{outfiles}}),"\t$out\t$scanhash->{$out}->{XCorr}\t$scanhash->{$out}->{dCn}\tnot_available\t$scanhash->{$out}->{transcriptID}\t$scanhash->{$out}->{functionalType}\tNA\tNA\tNA\tNA\n";
+		}
 	}
 	close OUT;
 }
@@ -48,8 +131,11 @@ sub pepFunRegion {
 	my ($scanhash,$transcripthash)=@_;
 
 	foreach my $hash (values %$scanhash) {
-		foreach my $hash2 (values %{$hash->{RNA}}) {
+		#foreach my $hash2 (values %{$hash->{RNA}}) {
+		foreach my $rnaID (keys %{$hash->{RNA}}) {
+			my $hash2=$hash->{RNA}->{$rnaID};
 			next unless (defined($hash2->{transcripts}));
+
 			my $chr=$hash2->{chr};
 			my $blkN=scalar(@{$hash2->{b5}});
 			my $pepStart=$hash2->{b5}->[0];
@@ -107,41 +193,54 @@ sub pepFunRegion {
 	# select representative transcript according to type: CDS > utr > intron > ncGene > nearGene > n/a (intergenic)
 	foreach my $hash (values %$scanhash) {
 		my %typehash;
-		foreach my $hash2 (values %{$hash->{RNA}}) {
+		my %rnaIDhash;
+		#foreach my $hash2 (values %{$hash->{RNA}}) {
+		foreach my $rnaID (keys %{$hash->{RNA}}) {
+			my $hash2=$hash->{RNA}->{$rnaID};
 			if (!defined($hash2->{b5})) {
 				$typehash{'unmapped'}='not_available';
+				$rnaIDhash{'unmapped'}='not_available';
 				next;
 			}
 			if (!defined($hash2->{transcripts})) {
 				$typehash{'intergenic'}='not_available';
+				$rnaIDhash{'intergenic'}=$rnaID;
 				next;
 			}
 			foreach my $id (keys %{$hash2->{transcripts}}) {
 				$typehash{$hash2->{transcripts}->{$id}->{type}}=$id; # could use gene name in future?
+				$rnaIDhash{$hash2->{transcripts}->{$id}->{type}}=$rnaID; # Trnity ID
 			}
 		}
 		# select representative transcript according to type
 		if (defined($typehash{'CDS'})) {
 			$hash->{functionalType}='CDS';
 			$hash->{transcriptID}=$typehash{'CDS'};
+			$hash->{rnaID}=$rnaIDhash{'CDS'};
 		} elsif (defined($typehash{'UTR'})) {
 			$hash->{functionalType}='UTR';
 			$hash->{transcriptID}=$typehash{'UTR'};
+			$hash->{rnaID}=$rnaIDhash{'UTR'};
 		} elsif (defined($typehash{'intron'})) {
 			$hash->{functionalType}='intron';
 			$hash->{transcriptID}=$typehash{'intron'};
+			$hash->{rnaID}=$rnaIDhash{'intron'};
 		} elsif (defined($typehash{'ncGene'})) {
 			$hash->{functionalType}='ncGene';
 			$hash->{transcriptID}=$typehash{'ncGene'};
+			$hash->{rnaID}=$rnaIDhash{'ncGene'};
 		} elsif (defined($typehash{'nearGene'})) {
 			$hash->{functionalType}='nearGene';
 			$hash->{transcriptID}=$typehash{'nearGene'};
+			$hash->{rnaID}=$rnaIDhash{'nearGene'};
 		} elsif (defined($typehash{'intergenic'})) {
 			$hash->{functionalType}='intergenic';
 			$hash->{transcriptID}=$typehash{'intergenic'};
+			$hash->{rnaID}=$rnaIDhash{'intergenic'};
 		} elsif (defined($typehash{'unmapped'})) {
 			$hash->{functionalType}='unmapped';
 			$hash->{transcriptID}=$typehash{'unmapped'};
+			$hash->{rnaID}=$rnaIDhash{'unmapped'};
 		}
 	}
 }
