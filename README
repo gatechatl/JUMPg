@@ -53,8 +53,8 @@ INSTALLATION:
 
 -step 0: unzip the source code and test data packages in the current directory by running the following commands:
 
-unzip JUMPg_v2.2.9.zip
-unzip exampleData_v4.zip
+unzip JUMPg_v2.2.9.zip (already unzipped)
+unzip exampleData_v5.zip
 
 -Step 1: set up module and program paths by running the following commands:
 
