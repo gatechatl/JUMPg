@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs/g
+#!/usr/bin/perl -I /home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/g
 
 ## Created: 08/14/2015
 my $VERSION='2.2.7';
@@ -225,7 +225,7 @@ if (!defined($parahash{bypass_PSM_filter}) or $parahash{bypass_PSM_filter}==0)
 		$parahash{'FDR'} = 0;
 		params_update_by_hash("$output_dir/$parahash{'params'}{f}","$output_dir/$parahash{'params'}{f}",\%parahash);
 		params_f_update("$output_dir/.jump_s_tmp","$output_dir/$parahash{'params'}{f}",'confident_PSMs',"$output_dir/$parahash{'params'}{f}");
-		system(qq(cd $output_dir && perl $parahash{'programs'}{f} $parahash{'params'}{f}));
+		system(qq(cd $output_dir && perl $parahash{'programs'}{f} $parahash{'params'}{f}  >/dev/null 2>&1));
 		if (-e "$output_dir/.sum_confident_PSMs") { system(qq(rm -rf $output_dir/.sum_confident_PSMs)); }
 		system(qq(mv $output_dir/sum_confident_PSMs $output_dir/.sum_confident_PSMs));
 	}
@@ -981,7 +981,7 @@ sub set_program_paths
 	my ($parahash)=@_;
 
 	#my $path='/home/yli4/development/JUMPg/v2.0/programs/';
-	my $path="/home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs";
+	my $path="/home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs";
 	#my $path=;
 	#my $path=aa";
 	$$parahash{'programs'}{params}="$path/params/jump_params.pl";
