@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs/f
+#!/usr/bin/perl -I /home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/f
 
 use strict;
 use warnings;

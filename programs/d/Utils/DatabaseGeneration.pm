@@ -13,7 +13,7 @@ use vars qw($VERSION @ISA @EXPORT);
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
 @EXPORT      = ();
-my $JUMPscript="/home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs/s/jump.pl";
+my $JUMPscript="/home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/s/jump.pl";
 
 sub new {
 	my ($class, %arg)=@_;

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I /home/yli4/lib/perl5
+#!/usr/bin/perl -w -I /home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/g
 
 use strict;
 use PrimarySeq;

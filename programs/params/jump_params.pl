@@ -312,6 +312,7 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "sim_MS1 = 1000											# ppm addition for MS1 decoys\n";
 		print PARAMS "sim_MS2 = 5											# Da window for randomized MS2 peaks\n";
 		print PARAMS "cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster\n";
+		print PARAMS "processors_used = 40										# \n";
 		print PARAMS "Job_Management_System = SGE									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used\n";
 		print PARAMS "temp_file_removal = 1										# 0 = disable (keep temporary files); 1 = enable (remove temporary files)\n";
 		close (PARAMS);

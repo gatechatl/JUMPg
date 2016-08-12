@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs/g
+#!/usr/bin/perl -I /home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/g
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ if (scalar(@ARGV)!=1)
 }
 
 # code path
-my $code_path="/home/yli4/development/JUMPg/release_2016_April/JUMPg_v2.2.8/programs/pa";
+my $code_path="/home/yli4/development/JUMPg/install_test_072816/JUMPg-master/programs/pa";
 #my $annotationFile2='/home/yli4/annotations/knownGenes_uniPro_012314.txt';
 
 #initialization
